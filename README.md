@@ -44,14 +44,17 @@ This revision fixes the main architecture errors from the edited pack and aligns
 - `OPS-AND-SECURITY.md`
 - `BUILD-SEQUENCE.md`
 - `ARCHON-WORKFLOW.md`
+- `docs/READ-THEN-BUILD.md`
 - `docs/CODING-STYLE.md`
+- `docs/SLICE-01-CHECKLIST.md`
+- `docs/SLICE-02-IMPLEMENTATION-PLAN.md`
 - `slices/`
 
 ## Working convention for scaffold code
 
 Current scaffold work uses readable Hungarian notation for new code and keeps framework-facing names descriptive.
 
-See [docs/CODING-STYLE.md](/home/colt/Desktop/radio-clipper-v3/docs/CODING-STYLE.md).
+See [docs/CODING-STYLE.md](docs/CODING-STYLE.md).
 
 ## v1 outcome
 

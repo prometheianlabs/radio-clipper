@@ -17,4 +17,4 @@ Slice 01 intent:
 
 ## Coding style
 
-Use readable Hungarian notation in scaffold code here as documented in [docs/CODING-STYLE.md](/home/colt/Desktop/radio-clipper-v3/docs/CODING-STYLE.md).
+Use readable Hungarian notation in scaffold code here as documented in [docs/CODING-STYLE.md](../docs/CODING-STYLE.md).

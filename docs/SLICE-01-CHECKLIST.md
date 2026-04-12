@@ -1,6 +1,6 @@
 # Slice 01 Checklist
 
-This checklist translates [slices/SLICE-01-foundation.md](/home/colt/Desktop/radio-clipper-v3/slices/SLICE-01-foundation.md) into concrete startup work.
+This checklist translates [slices/SLICE-01-foundation.md](../slices/SLICE-01-foundation.md) into concrete startup work.
 
 ## Goal
 
@@ -20,7 +20,7 @@ Stand up the repo skeleton, Angular shell, Amplify Gen 2 backend skeleton, share
 ## Do now
 
 1. Confirm the repo contains only planning docs and no existing app scaffold.
-2. Create the top-level directories defined in [START-HERE.md](/home/colt/Desktop/radio-clipper-v3/START-HERE.md).
+2. Create the top-level directories defined in [START-HERE.md](../START-HERE.md).
 3. Add placeholder files so each new directory has an obvious purpose.
 4. Create a minimal Angular workspace plan for `apps/web`.
 5. Create a minimal Amplify Gen 2 backend plan for `amplify`.
@@ -50,7 +50,7 @@ Stand up the repo skeleton, Angular shell, Amplify Gen 2 backend skeleton, share
 
 Use these checks before claiming Slice 01 done:
 
-1. The repo shape matches the directories in [slices/SLICE-01-foundation.md](/home/colt/Desktop/radio-clipper-v3/slices/SLICE-01-foundation.md).
+1. The repo shape matches the directories in [slices/SLICE-01-foundation.md](../slices/SLICE-01-foundation.md).
 2. The Angular app shell path exists and has a documented startup target.
 3. The Amplify backend path exists and has a documented purpose.
 4. Shared package boundaries are written down.
@@ -60,3 +60,18 @@ Use these checks before claiming Slice 01 done:
 ## Stop condition
 
 This slice is ready to implement further when the workspace has the agreed directory skeleton, clear ownership notes for each area, and a bounded plan for the first real code generation pass.
+
+## Completion record
+
+**Status: DONE — 2026-04-12**
+
+Validation checks passed:
+
+1. Repo shape matches `slices/SLICE-01-foundation.md` — all top-level directories exist.
+2. Angular app shell at `apps/web` with routes, auth guards, and three page components.
+3. Amplify Gen 2 backend at `amplify/` with auth resource plan and custom resource boundaries.
+4. Shared package roots at `packages/contracts` and `packages/config` with documented responsibilities.
+5. Archon workflow files at `.archon/workflows/` (plan, implement, validate, review).
+6. No Slice 02 ingest behavior present in any file.
+
+Slice 02 implementation plan approved and recorded at `docs/SLICE-02-IMPLEMENTATION-PLAN.md`.
