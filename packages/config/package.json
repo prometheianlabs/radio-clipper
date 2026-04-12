@@ -13,7 +13,7 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@radio-clipper/contracts": "*"
+    "@radio-clipper/contracts": "file:../contracts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
