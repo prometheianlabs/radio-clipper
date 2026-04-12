@@ -4,10 +4,27 @@ worktree:
 current_slice:
   name: slice-02-shoutcast-ingest
   path: slices/SLICE-02-shoutcast-ingest.md
-  status: plan-approved
+  status: validated
   plan_doc: docs/SLICE-02-IMPLEMENTATION-PLAN.md
-  next_workflow: implement-slice
+  operator_setup: docs/BUTT-OPERATOR-SETUP.md
+  next_workflow: commit-slice
   updated_at: "2026-04-12"
+  implementation_summary:
+    - packages/contracts — IContributionAdapter, TNormalizedAudioFrame, session events, chunk metadata
+    - packages/config    — fnValidateStationConfig, fnLoadGatewayEnv
+    - services/ingest-gateway/src/adapter   — ShoutcastSourceAdapter, shoutcast-protocol
+    - services/ingest-gateway/src/session   — SessionManager, DynamoSessionStore
+    - services/ingest-gateway/src/chunk     — ChunkAssembler, S3AudioStore, DynamoChunkStore
+    - services/ingest-gateway/src/health    — IngestHealthTracker, health-router
+    - services/ingest-gateway/src/main.ts   — full pipeline wiring, HTTP server, graceful shutdown
+  validation_evidence:
+    - "check-1 (config & credentials): 7/7 passed — fnParseSourcePassword, fnValidateStationConfig"
+    - "check-2 (session creation): 5/5 passed — 200 OK, session.created, normalized frames, 401 paths, session.ended"
+    - "check-3 (reconnect): 3/3 passed — same session ID, monotonic nReconnectCount, no spurious session.ended"
+    - "check-4 (chunk assembly): 8/8 passed — window filling, sequence_no, timing fields, byte_size, checksum, fnFlushRemaining"
+    - "check-5 (S3→DynamoDB ordering): 4/4 passed — write order, S3 failure skips Dynamo, Dynamo failure logged with S3 key, key format"
+    - "check-6 (health endpoint): 14/14 passed — state transitions, HTTP 200/404/405, idle vs healthy status"
+    - "total: 49/49 tests passed (vitest run, 2026-04-12)"
 
 completed_slices:
   - name: slice-01-foundation
