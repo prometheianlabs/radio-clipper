@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    // Pull in Node.js type definitions so process.env is typed.
+    // @types/node is in devDependencies for typecheck only — no runtime dependency.
+    "types": ["node"]
+  },
+  "include": [
+    "./src/**/*.ts"
+  ]
+}
