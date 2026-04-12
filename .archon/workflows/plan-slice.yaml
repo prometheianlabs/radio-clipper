@@ -1,0 +1,27 @@
+name: plan-slice
+purpose: Create a bounded plan for one slice before implementation begins.
+
+inputs:
+  required:
+    - README.md
+    - START-HERE.md
+    - ROADMAP.md
+    - current-slice.md
+  optional:
+    - ARCHITECTURE.md
+    - DATA-MODEL.md
+    - API-AND-EVENTS.md
+    - UI-SCREENS.md
+    - OPS-AND-SECURITY.md
+
+rules:
+  - Work on one slice only.
+  - Refuse requests that span current and future slices.
+  - Read directly referenced architecture documents before planning.
+  - Produce a file-level implementation plan, risks, and stop condition.
+
+outputs:
+  - written implementation plan
+  - risks and deferrals
+  - expected files to change
+  - validation targets

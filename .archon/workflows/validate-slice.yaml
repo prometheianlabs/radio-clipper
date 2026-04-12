@@ -1,0 +1,20 @@
+name: validate-slice
+purpose: Run the narrowest checks that prove the current slice stop condition.
+
+inputs:
+  required:
+    - changed-files
+    - current-slice.md
+    - approved-plan
+
+rules:
+  - Validate only the current slice.
+  - Prefer build, test, or run checks over diff-only review.
+  - Record evidence for each stop-condition claim.
+  - Stop on failed validation and route back to the same slice.
+
+outputs:
+  - executed checks
+  - validation evidence
+  - stop condition status
+  - open failures or blockers

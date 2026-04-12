@@ -1,0 +1,23 @@
+<main class="app-shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Radio Clipper v1</p>
+      <h1>Foundation shell</h1>
+    </div>
+
+    @if (bIsSignedIn()) {
+      <div class="session-bar">
+        <span class="role-pill">{{ sRole() }}</span>
+        <nav>
+          <a routerLink="/live" routerLinkActive="active">Live desk</a>
+          <a routerLink="/admin" routerLinkActive="active">Admin</a>
+        </nav>
+        <button type="button" (click)="fnSignOut()">Sign out</button>
+      </div>
+    }
+  </header>
+
+  <section class="content-frame">
+    <router-outlet />
+  </section>
+</main>

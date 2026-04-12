@@ -1,0 +1,20 @@
+name: review-slice
+purpose: Produce a bounded review of one completed slice.
+
+inputs:
+  required:
+    - implementation-results
+    - validation-results
+    - current-slice.md
+
+rules:
+  - Review only the current slice.
+  - Focus on risks, regressions, and missing validation.
+  - Do not reopen future-slice design work.
+  - Declare done or not-done explicitly.
+
+outputs:
+  - findings
+  - remaining risks
+  - cleanup or follow-up list
+  - done-or-not-done decision

@@ -1,0 +1,22 @@
+name: implement-slice
+purpose: Apply code or scaffold changes for one approved slice only.
+
+inputs:
+  required:
+    - approved-plan
+    - README.md
+    - START-HERE.md
+    - ROADMAP.md
+    - current-slice.md
+
+rules:
+  - Work on one slice only.
+  - Refuse edits outside the approved slice boundary.
+  - Do not implement future-slice behavior.
+  - Keep downstream service boundaries protocol-agnostic.
+  - Preserve deterministic timing rules called out by the planning pack.
+
+outputs:
+  - bounded code changes
+  - notes on assumptions made during implementation
+  - handoff to validation workflow
