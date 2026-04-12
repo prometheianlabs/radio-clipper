@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
+// Smoke tests guard against accidental shell or heading regressions.
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({

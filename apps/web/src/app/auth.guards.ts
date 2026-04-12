@@ -3,6 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthShellService } from './auth-shell.service';
 
+// Any signed-in role can access the live desk placeholder.
 export const fnAuthGuard: CanActivateFn = (_oRoute, oState) => {
   const oAuthShell = inject(AuthShellService);
   const oRouter = inject(Router);
@@ -16,6 +17,7 @@ export const fnAuthGuard: CanActivateFn = (_oRoute, oState) => {
   });
 };
 
+// Admin route requires admin or platform_admin and redirects all others safely.
 export const fnAdminGuard: CanActivateFn = () => {
   const oAuthShell = inject(AuthShellService);
   const oRouter = inject(Router);

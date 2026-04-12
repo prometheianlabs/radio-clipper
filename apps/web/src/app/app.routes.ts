@@ -5,6 +5,7 @@ import { AdminPageComponent } from './pages/admin-page.component';
 import { LiveDeskPageComponent } from './pages/live-desk-page.component';
 import { LoginPageComponent } from './pages/login-page.component';
 
+// Keep login public while role-based guards enforce access to live/admin placeholders.
 export const routes: Routes = [
 	{
 		path: '',

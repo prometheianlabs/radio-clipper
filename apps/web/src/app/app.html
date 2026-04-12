@@ -1,10 +1,13 @@
+<!-- Top-level shell for slice-01 auth and route placeholders. -->
 <main class="app-shell">
   <header class="topbar">
-    <div>
+    <div class="brand-block">
       <p class="eyebrow">Radio Clipper v1</p>
-      <h1>Foundation shell</h1>
+      <h1>Broadcast Console</h1>
+      <p class="tagline">Live operations for modern stations with heritage studio character</p>
     </div>
 
+    <!-- Session controls are visible only when the in-memory auth shell has a user. -->
     @if (bIsSignedIn()) {
       <div class="session-bar">
         <span class="role-pill">{{ sRole() }}</span>
@@ -17,6 +20,7 @@
     }
   </header>
 
+  <!-- Routed page content renders inside the shared frame. -->
   <section class="content-frame">
     <router-outlet />
   </section>

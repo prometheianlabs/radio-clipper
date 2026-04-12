@@ -1,12 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Poiret+One&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+:root {
+	--c-bg-ink: #12100c;
+	--c-bg-walnut: #2a2018;
+	--c-panel-bark: #31251b;
+	--c-panel-deep: #1f1711;
+	--c-brass: #b6863f;
+	--c-brass-soft: #d3ad69;
+	--c-parchment: #f4e8c8;
+	--c-parchment-dim: #d8c9a7;
+	--c-signal-red: #b34d2f;
+	--c-teal: #5b918f;
+	--ff-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+	--ff-display: 'Poiret One', 'Trebuchet MS', sans-serif;
+	--shadow-console: 0 22px 65px rgba(0, 0, 0, 0.45);
+}
+
 html,
 body {
 	margin: 0;
 	min-height: 100%;
-	background: #020617;
 }
 
 body {
-	color: #e2e8f0;
+	font-family: var(--ff-body);
+	color: var(--c-parchment);
+	background:
+		radial-gradient(circle at 8% 12%, rgba(182, 134, 63, 0.18), transparent 28%),
+		radial-gradient(circle at 87% 2%, rgba(91, 145, 143, 0.18), transparent 22%),
+		linear-gradient(150deg, #130f0b 0%, #1f1711 50%, #251b14 100%);
+	line-height: 1.4;
+}
+
+h1,
+h2,
+h3,
+.eyebrow {
+	font-family: var(--ff-display);
+	font-weight: 400;
+	letter-spacing: 0.025em;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background:
+		repeating-linear-gradient(
+			0deg,
+			rgba(244, 232, 200, 0.015) 0,
+			rgba(244, 232, 200, 0.015) 1px,
+			transparent 1px,
+			transparent 3px
+		),
+		radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.3) 88%);
+	z-index: 1;
 }
 
 * {
