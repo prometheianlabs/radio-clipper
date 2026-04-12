@@ -81,6 +81,7 @@ import { AuthShellService, TRole } from '../auth-shell.service';
       letter-spacing: 0.015em;
       cursor: pointer;
       transition: transform 140ms ease, filter 140ms ease;
+      min-height: 2.65rem;
     }
 
     /* Lift effect reinforces interactive affordance without being noisy. */
@@ -88,7 +89,8 @@ import { AuthShellService, TRole } from '../auth-shell.service';
     button:focus-visible {
       transform: translateY(-1px);
       filter: brightness(1.05);
-      outline: none;
+      outline: 2px solid var(--c-focus-ring);
+      outline-offset: 2px;
     }
 
     /* Card fade-in uses a short delay so header text settles first. */
@@ -112,6 +114,31 @@ import { AuthShellService, TRole } from '../auth-shell.service';
       .login-card,
       .actions {
         animation: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .login-card {
+        padding: 1.25rem;
+      }
+
+      h1 {
+        font-size: clamp(1.75rem, 9vw, 2.45rem);
+      }
+
+      .summary {
+        line-height: 1.5;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .login-card {
+        padding: 1rem;
+      }
+
+      button {
+        padding: 0.8rem 0.95rem;
+        font-size: 0.96rem;
       }
     }
   `,

@@ -8,9 +8,10 @@
 	--c-brass: #b6863f;
 	--c-brass-soft: #d3ad69;
 	--c-parchment: #f4e8c8;
-	--c-parchment-dim: #d8c9a7;
+	--c-parchment-dim: #e7d9ba;
 	--c-signal-red: #b34d2f;
 	--c-teal: #5b918f;
+	--c-focus-ring: #f2ce8c;
 	--ff-body: 'Source Sans 3', 'Segoe UI', sans-serif;
 	--ff-display: 'Poiret One', 'Trebuchet MS', sans-serif;
 	--shadow-console: 0 22px 65px rgba(0, 0, 0, 0.45);
@@ -60,4 +61,26 @@ body::before {
 
 * {
 	box-sizing: border-box;
+}
+
+/* Global focus-visible defaults preserve keyboard discoverability across routes. */
+:focus-visible {
+	outline: 2px solid var(--c-focus-ring);
+	outline-offset: 2px;
+}
+
+/* Honor reduced-motion preference for motion and scrolling behavior. */
+@media (prefers-reduced-motion: reduce) {
+	html:focus-within {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }

@@ -116,6 +116,7 @@ import { AuthShellService } from '../auth-shell.service';
       display: grid;
       gap: 0.5rem;
       color: var(--c-parchment-dim);
+      line-height: 1.45;
     }
 
     @keyframes kfPanelReveal {
@@ -134,6 +135,36 @@ import { AuthShellService } from '../auth-shell.service';
       article {
         opacity: 1;
         animation: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .page-shell {
+        gap: 1rem;
+      }
+
+      h1 {
+        margin: 0.3rem 0 0.6rem;
+        font-size: clamp(1.5rem, 7.2vw, 2rem);
+      }
+
+      .panel-grid {
+        grid-template-columns: 1fr;
+      }
+
+      article {
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      article {
+        padding: 0.9rem;
+      }
+
+      ul {
+        gap: 0.42rem;
+        font-size: 0.95rem;
       }
     }
   `,

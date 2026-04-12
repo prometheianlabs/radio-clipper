@@ -84,6 +84,7 @@ import { Component } from '@angular/core';
     p {
       margin: 0;
       color: var(--c-parchment-dim);
+      line-height: 1.45;
     }
 
     @keyframes kfOpsReveal {
@@ -102,6 +103,35 @@ import { Component } from '@angular/core';
       article {
         opacity: 1;
         animation: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .page-shell {
+        gap: 1rem;
+      }
+
+      h1 {
+        margin: 0.3rem 0 0.65rem;
+        font-size: clamp(1.5rem, 7.2vw, 2rem);
+      }
+
+      .panel-grid {
+        grid-template-columns: 1fr;
+      }
+
+      article {
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      article {
+        padding: 0.9rem;
+      }
+
+      p {
+        font-size: 0.95rem;
       }
     }
   `,

@@ -1,5 +1,7 @@
 <!-- Top-level shell for slice-01 auth and route placeholders. -->
 <main class="app-shell">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
   <header class="topbar">
     <div class="brand-block">
       <p class="eyebrow">Radio Clipper v1</p>
@@ -21,7 +23,7 @@
   </header>
 
   <!-- Routed page content renders inside the shared frame. -->
-  <section class="content-frame">
+  <section class="content-frame" id="main-content" tabindex="-1">
     <router-outlet />
   </section>
 </main>
