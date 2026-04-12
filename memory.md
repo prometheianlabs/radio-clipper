@@ -17,7 +17,7 @@
 
 ## Near-term next steps
 
-1. scaffold Angular app shell
-2. scaffold Amplify Gen 2 backend shell
-3. add shared package starter files
-4. add Archon workflow files
+1. implement shared ingest contracts for Slice 02
+2. implement Shoutcast session lifecycle and heartbeat handling
+3. implement chunk archive and metadata persistence
+4. produce BUTT operator setup note and validation evidence

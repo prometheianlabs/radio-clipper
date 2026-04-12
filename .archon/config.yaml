@@ -1,0 +1,16 @@
+worktree:
+  baseBranch: main
+
+current_slice:
+  name: slice-02-shoutcast-ingest
+  path: slices/SLICE-02-shoutcast-ingest.md
+  status: plan-approved
+  plan_doc: docs/SLICE-02-IMPLEMENTATION-PLAN.md
+  next_workflow: implement-slice
+  updated_at: "2026-04-12"
+
+completed_slices:
+  - name: slice-01-foundation
+    path: slices/SLICE-01-foundation.md
+    completed_at: "2026-04-12"
+    checklist: docs/SLICE-01-CHECKLIST.md

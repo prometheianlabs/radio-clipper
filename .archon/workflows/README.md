@@ -1,6 +1,6 @@
 # .archon/workflows
 
-Archon workflow files will live here.
+Archon workflow files for slice-bounded planning and delivery live here.
 
 Current workflow set:
 
@@ -9,7 +9,16 @@ Current workflow set:
 - `validate-slice.yaml`
 - `review-slice.yaml`
 
-Slice 01 intent:
+## Workflow node contract
 
-- establish the workflow contract now
-- keep all later implementation slice-bounded
+Each workflow uses the same three-stage pattern:
+
+1. `scope` node selects exactly one slice and declares boundary intent.
+2. `gather-context` node reads core docs plus selected slice and supporting references.
+3. action node (`plan`, `implement`, `validate`, `review`) produces bounded output for that stage only.
+
+## Artifact expectations
+
+- workflow YAML files are versioned source of truth
+- `.archon/config.yaml` stores local worktree defaults
+- `.archon/logs/*.jsonl` are generated run logs and should remain untracked

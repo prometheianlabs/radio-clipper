@@ -2,4 +2,5 @@
 **/dist/
 **/.angular/
 **/.amplify/
+.archon/logs/
 *.log

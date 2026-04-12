@@ -1,20 +1,92 @@
 name: validate-slice
+description: Validate one slice against its stop condition using the narrowest useful checks.
 purpose: Run the narrowest checks that prove the current slice stop condition.
+nodes:
+  - id: scope
+    prompt: |
+      You are scoping one slice for validation.
 
-inputs:
-  required:
-    - changed-files
-    - current-slice.md
-    - approved-plan
+      User request:
+      $ARGUMENTS
 
-rules:
-  - Validate only the current slice.
-  - Prefer build, test, or run checks over diff-only review.
-  - Record evidence for each stop-condition claim.
-  - Stop on failed validation and route back to the same slice.
+      Available slice files:
+      - slices/SLICE-01-foundation.md
+      - slices/SLICE-02-shoutcast-ingest.md
+      - slices/SLICE-03-live-transcription.md
+      - slices/SLICE-04-producer-console.md
+      - slices/SLICE-05-clipping-and-export.md
+      - slices/SLICE-06-admin-ops-hardening.md
+      - slices/SLICE-07-future-ingest-adapters.md
 
-outputs:
-  - executed checks
-  - validation evidence
-  - stop condition status
-  - open failures or blockers
+      Rules:
+      - Select exactly one slice.
+      - Extract the most concrete stop condition available from the request.
+      - Keep validation scoped to that slice.
+
+      Return structured scope data only.
+    model: haiku
+    allowed_tools: []
+    output_format:
+      type: object
+      properties:
+        slice_name:
+          type: string
+        slice_path:
+          type: string
+        stop_condition:
+          type: string
+        validation_focus:
+          type: string
+      required: [slice_name, slice_path, stop_condition, validation_focus]
+  - id: gather-context
+    bash: |
+      echo "## Git status"
+      git status --short || true
+      echo ""
+
+      echo "## Diff stat"
+      git --no-pager diff --stat || true
+      echo ""
+
+      echo "## Slice doc"
+      if [ -f "$scope.output.slice_path" ]; then
+        echo "### FILE: $scope.output.slice_path"
+        cat "$scope.output.slice_path"
+        echo ""
+      else
+        echo "Missing selected slice file: $scope.output.slice_path" >&2
+        exit 1
+      fi
+
+      echo "## Working docs"
+      for f in docs/*.md; do
+        if [ -f "$f" ]; then
+          echo "### FILE: $f"
+          cat "$f"
+          echo ""
+        fi
+      done
+    depends_on: [scope]
+  - id: validate
+    prompt: |
+      Validate exactly one repository slice against its stop condition.
+
+      Scope:
+      $scope.output
+
+      Repository context:
+      $gather-context.output
+
+      Requirements:
+      - Validate only the current slice.
+      - Prefer build, test, or run checks over diff-only review.
+      - Record evidence for each stop-condition claim.
+      - Stop on failed validation and route back to the same slice.
+
+      Deliver:
+      1. Executed checks
+      2. Validation evidence
+      3. Stop condition status
+      4. Open failures or blockers
+    depends_on: [scope, gather-context]
+    context: fresh

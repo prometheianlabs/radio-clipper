@@ -17,6 +17,8 @@ Use Archon to enforce:
 
 ```text
 .archon/
+  config.yaml
+  logs/                 # generated run logs, not source of truth
   workflows/
     plan-slice.yaml
     implement-slice.yaml
@@ -24,7 +26,7 @@ Use Archon to enforce:
     review-slice.yaml
 ```
 
-## Workflow rules
+## Workflow contract
 
 ### Rule 1
 
@@ -32,23 +34,28 @@ Each workflow must target one slice only.
 
 ### Rule 2
 
-A workflow must read these files before implementation:
+A workflow must begin by scoping to exactly one slice from `slices/`.
+
+### Rule 3
+
+After scoping, context gathering must include:
 
 - `README.md`
 - `START-HERE.md`
 - `ROADMAP.md`
-- current slice file
-- any directly referenced architecture doc
-
-### Rule 3
-
-Implementation workflows must refuse to touch future slices.
+- `ARCHON-WORKFLOW.md`
+- selected slice file
+- any directly referenced architecture docs
 
 ### Rule 4
 
-Validation workflows must run the slice stop condition and record evidence.
+Implementation workflows must refuse to touch future slices.
 
 ### Rule 5
+
+Validation workflows must run the slice stop condition and record evidence.
+
+### Rule 6
 
 Review workflows must produce:
 
@@ -57,46 +64,55 @@ Review workflows must produce:
 - what should be deferred
 - whether the slice is actually done
 
-## Suggested slice workflow pattern
+## Suggested node pattern
 
-### 1. Plan
+Each workflow YAML should keep this structure:
 
-Inputs:
-- current slice
-- architecture docs
-- repo state
+1. `scope` node chooses one slice and states boundaries.
+2. `gather-context` node reads repo files needed for that slice.
+3. A single action node (`plan`, `implement`, `validate`, or `review`) performs bounded work.
 
-Output:
+## Suggested slice workflow sequence
+
+### 1. Plan (`plan-slice.yaml`)
+
+Outputs:
 - written implementation plan
-- risks
-- files expected to change
+- risks and deferrals
+- validation targets
+- stop condition interpretation
 
-### 2. Implement
+### 2. Implement (`implement-slice.yaml`)
 
-Inputs:
-- approved plan
-
-Output:
+Outputs:
 - bounded code changes for the current slice only
+- assumptions list
+- handoff to validation
 
-### 3. Validate
+### 3. Validate (`validate-slice.yaml`)
 
-Inputs:
-- changed code
+Outputs:
+- executed checks
+- validation evidence
+- stop condition status
 
-Output:
-- build/test/run evidence
-- stop condition result
+### 4. Review (`review-slice.yaml`)
 
-### 4. Review
-
-Inputs:
-- implementation and validation results
-
-Output:
+Outputs:
 - findings
+- remaining risks
 - cleanup list
 - done/not-done decision
+
+## Artifact hygiene
+
+Track:
+- `.archon/workflows/*.yaml`
+- `.archon/config.yaml`
+- slice plans and checklists in `docs/`
+
+Do not track:
+- `.archon/logs/*.jsonl` generated runtime logs
 
 ## Repo discipline
 

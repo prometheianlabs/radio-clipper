@@ -1,22 +1,97 @@
 name: implement-slice
+description: Implement one approved slice without leaking into future-slice work.
 purpose: Apply code or scaffold changes for one approved slice only.
+nodes:
+  - id: scope
+    prompt: |
+      You are scoping one slice for implementation.
 
-inputs:
-  required:
-    - approved-plan
-    - README.md
-    - START-HERE.md
-    - ROADMAP.md
-    - current-slice.md
+      User request:
+      $ARGUMENTS
 
-rules:
-  - Work on one slice only.
-  - Refuse edits outside the approved slice boundary.
-  - Do not implement future-slice behavior.
-  - Keep downstream service boundaries protocol-agnostic.
-  - Preserve deterministic timing rules called out by the planning pack.
+      Available slice files:
+      - slices/SLICE-01-foundation.md
+      - slices/SLICE-02-shoutcast-ingest.md
+      - slices/SLICE-03-live-transcription.md
+      - slices/SLICE-04-producer-console.md
+      - slices/SLICE-05-clipping-and-export.md
+      - slices/SLICE-06-admin-ops-hardening.md
+      - slices/SLICE-07-future-ingest-adapters.md
 
-outputs:
-  - bounded code changes
-  - notes on assumptions made during implementation
-  - handoff to validation workflow
+      Rules:
+      - Select exactly one slice.
+      - Refuse future-slice work outside the chosen slice boundary.
+      - If the request does not include an approved plan or sufficiently specific direction, say so.
+      - Preserve protocol-agnostic boundaries and deterministic timing rules.
+
+      Return structured scope data only.
+    model: haiku
+    allowed_tools: []
+    output_format:
+      type: object
+      properties:
+        slice_name:
+          type: string
+        slice_path:
+          type: string
+        boundary_summary:
+          type: string
+        approved_plan_status:
+          type: string
+        implementation_goal:
+          type: string
+      required: [slice_name, slice_path, boundary_summary, approved_plan_status, implementation_goal]
+  - id: gather-context
+    bash: |
+      echo "## Core docs"
+      for f in README.md START-HERE.md ROADMAP.md ARCHON-WORKFLOW.md; do
+        if [ -f "$f" ]; then
+          echo "### FILE: $f"
+          cat "$f"
+          echo ""
+        fi
+      done
+
+      echo "## Slice doc"
+      if [ -f "$scope.output.slice_path" ]; then
+        echo "### FILE: $scope.output.slice_path"
+        cat "$scope.output.slice_path"
+        echo ""
+      else
+        echo "Missing selected slice file: $scope.output.slice_path" >&2
+        exit 1
+      fi
+
+      echo "## Working docs"
+      for f in docs/*.md; do
+        if [ -f "$f" ]; then
+          echo "### FILE: $f"
+          cat "$f"
+          echo ""
+        fi
+      done
+    depends_on: [scope]
+  - id: implement
+    prompt: |
+      Implement exactly one approved slice.
+
+      Scope:
+      $scope.output
+
+      Repository context:
+      $gather-context.output
+
+      Requirements:
+      - Work on one slice only.
+      - Refuse edits outside the approved slice boundary.
+      - Do not implement future-slice behavior.
+      - Keep downstream service boundaries protocol-agnostic.
+      - Preserve deterministic timing rules called out by the planning pack.
+      - Keep docs in sync when the implementation changes developer workflow or constraints.
+
+      Deliver:
+      1. Bounded code or scaffold changes for the current slice only.
+      2. Notes on assumptions made during implementation.
+      3. A short handoff for validation.
+    depends_on: [scope, gather-context]
+    context: fresh

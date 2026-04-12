@@ -1,20 +1,90 @@
 name: review-slice
+description: Review one completed slice for risks, regressions, and completion status.
 purpose: Produce a bounded review of one completed slice.
+nodes:
+  - id: scope
+    prompt: |
+      You are scoping one slice for review.
 
-inputs:
-  required:
-    - implementation-results
-    - validation-results
-    - current-slice.md
+      User request:
+      $ARGUMENTS
 
-rules:
-  - Review only the current slice.
-  - Focus on risks, regressions, and missing validation.
-  - Do not reopen future-slice design work.
-  - Declare done or not-done explicitly.
+      Available slice files:
+      - slices/SLICE-01-foundation.md
+      - slices/SLICE-02-shoutcast-ingest.md
+      - slices/SLICE-03-live-transcription.md
+      - slices/SLICE-04-producer-console.md
+      - slices/SLICE-05-clipping-and-export.md
+      - slices/SLICE-06-admin-ops-hardening.md
+      - slices/SLICE-07-future-ingest-adapters.md
 
-outputs:
-  - findings
-  - remaining risks
-  - cleanup or follow-up list
-  - done-or-not-done decision
+      Rules:
+      - Select exactly one slice.
+      - Keep the review bounded to that slice.
+      - Focus on completion status, risks, regressions, and missing validation.
+
+      Return structured scope data only.
+    model: haiku
+    allowed_tools: []
+    output_format:
+      type: object
+      properties:
+        slice_name:
+          type: string
+        slice_path:
+          type: string
+        review_focus:
+          type: string
+      required: [slice_name, slice_path, review_focus]
+  - id: gather-context
+    bash: |
+      echo "## Git status"
+      git status --short || true
+      echo ""
+
+      echo "## Diff stat"
+      git --no-pager diff --stat || true
+      echo ""
+
+      echo "## Slice doc"
+      if [ -f "$scope.output.slice_path" ]; then
+        echo "### FILE: $scope.output.slice_path"
+        cat "$scope.output.slice_path"
+        echo ""
+      else
+        echo "Missing selected slice file: $scope.output.slice_path" >&2
+        exit 1
+      fi
+
+      echo "## Working docs"
+      for f in docs/*.md; do
+        if [ -f "$f" ]; then
+          echo "### FILE: $f"
+          cat "$f"
+          echo ""
+        fi
+      done
+    depends_on: [scope]
+  - id: review
+    prompt: |
+      Review exactly one completed slice.
+
+      Scope:
+      $scope.output
+
+      Repository context:
+      $gather-context.output
+
+      Requirements:
+      - Review only the current slice.
+      - Focus on risks, regressions, and missing validation.
+      - Do not reopen future-slice design work.
+      - Declare done or not-done explicitly.
+
+      Deliver:
+      1. Findings
+      2. Remaining risks
+      3. Cleanup or follow-up list
+      4. Done-or-not-done decision
+    depends_on: [scope, gather-context]
+    context: fresh

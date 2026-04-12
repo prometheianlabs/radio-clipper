@@ -1,27 +1,100 @@
 name: plan-slice
+description: Plan one repository slice with explicit scope, risks, and validation targets.
 purpose: Create a bounded plan for one slice before implementation begins.
+nodes:
+  - id: scope
+    prompt: |
+      You are scoping one repository slice for planning.
 
-inputs:
-  required:
-    - README.md
-    - START-HERE.md
-    - ROADMAP.md
-    - current-slice.md
-  optional:
-    - ARCHITECTURE.md
-    - DATA-MODEL.md
-    - API-AND-EVENTS.md
-    - UI-SCREENS.md
-    - OPS-AND-SECURITY.md
+      User request:
+      $ARGUMENTS
 
-rules:
-  - Work on one slice only.
-  - Refuse requests that span current and future slices.
-  - Read directly referenced architecture documents before planning.
-  - Produce a file-level implementation plan, risks, and stop condition.
+      Available slice files:
+      - slices/SLICE-01-foundation.md
+      - slices/SLICE-02-shoutcast-ingest.md
+      - slices/SLICE-03-live-transcription.md
+      - slices/SLICE-04-producer-console.md
+      - slices/SLICE-05-clipping-and-export.md
+      - slices/SLICE-06-admin-ops-hardening.md
+      - slices/SLICE-07-future-ingest-adapters.md
 
-outputs:
-  - written implementation plan
-  - risks and deferrals
-  - expected files to change
-  - validation targets
+      Rules:
+      - Select exactly one current slice.
+      - If the request spans multiple slices, choose the earliest slice that must be done first.
+      - Do not broaden scope into future slices.
+      - List only architecture documents that are directly relevant to that one slice.
+
+      Return structured scope data only.
+    model: haiku
+    allowed_tools: []
+    output_format:
+      type: object
+      properties:
+        slice_name:
+          type: string
+        slice_path:
+          type: string
+        scope_summary:
+          type: string
+        stop_condition:
+          type: string
+        architecture_focus:
+          type: string
+      required: [slice_name, slice_path, scope_summary, stop_condition, architecture_focus]
+  - id: gather-context
+    bash: |
+      echo "## Core docs"
+      for f in README.md START-HERE.md ROADMAP.md ARCHON-WORKFLOW.md; do
+        if [ -f "$f" ]; then
+          echo "### FILE: $f"
+          cat "$f"
+          echo ""
+        fi
+      done
+
+      echo "## Selected slice"
+      if [ -f "$scope.output.slice_path" ]; then
+        echo "### FILE: $scope.output.slice_path"
+        cat "$scope.output.slice_path"
+        echo ""
+      else
+        echo "Missing selected slice file: $scope.output.slice_path" >&2
+        exit 1
+      fi
+
+      echo "## Referenced architecture docs"
+      for f in ARCHITECTURE.md DATA-MODEL.md API-AND-EVENTS.md UI-SCREENS.md OPS-AND-SECURITY.md; do
+        if [ -f "$f" ]; then
+          echo "### FILE: $f"
+          cat "$f"
+          echo ""
+        fi
+      done
+    depends_on: [scope]
+  - id: plan
+    prompt: |
+      Create a bounded implementation plan for exactly one repository slice.
+
+      Slice scope:
+      $scope.output
+
+      Repository context:
+      $gather-context.output
+
+      Requirements:
+      - Work on one slice only.
+      - Refuse future-slice implementation work.
+      - Read directly referenced architecture docs before planning.
+      - Produce a file-level implementation plan.
+      - Include explicit risks, deferrals, and validation targets.
+      - State a stop condition that can be checked during validation.
+
+      Output sections:
+      1. Slice and boundary
+      2. Stop condition
+      3. Files expected to change
+      4. Ordered implementation steps
+      5. Risks and deferrals
+      6. Validation targets
+    depends_on: [scope, gather-context]
+    context: fresh
