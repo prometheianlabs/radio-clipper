@@ -81,6 +81,9 @@ export class ShoutcastSourceAdapter implements IContributionAdapter {
 
   // Held so fnDisconnect() can destroy the active socket.
   private oActiveRequest: IncomingMessage | null = null;
+  // Guards session.ended emission so one connection leg cannot emit duplicate
+  // terminal events when multiple close paths fire (destroy + end/error).
+  private bSessionEndedForCurrentConnection = false;
 
   // --- Constructor dependencies ---
 
@@ -140,20 +143,23 @@ export class ShoutcastSourceAdapter implements IContributionAdapter {
   async fnDisconnect(): Promise<void> {
     this.bReady = false;
 
-    if (this.oActiveRequest) {
-      this.oActiveRequest.destroy();
-      this.oActiveRequest = null;
+    // Emit session.ended once for the current connection/session if it has not
+    // already been emitted. This is idempotent by design.
+    this.fnEmitSessionEnded('clean_disconnect');
+
+    // Snapshot and clear active request first. This prevents late events from a
+    // stale request being treated as the active stream.
+    const oRequestToClose = this.oActiveRequest;
+    this.oActiveRequest = null;
+
+    if (oRequestToClose) {
+      oRequestToClose.destroy();
     }
 
-    if (this.sSessionId && this.oConfig) {
-      this.fnSessionEventHandler?.({
-        eType: 'session.ended',
-        sSessionId: this.sSessionId,
-        sStationId: this.oConfig.sStationId,
-        sEndedAt: new Date().toISOString(),
-        eReason: 'clean_disconnect',
-      });
-    }
+    // A manual disconnect is terminal for this adapter lifecycle. Reset session
+    // state so a future fnConnect/fnHandleSourceRequest starts a new session ID
+    // instead of reviving a previous one.
+    this.fnResetSessionLifecycleState();
   }
 
   // --- Shoutcast-specific request entry point ---
@@ -183,6 +189,15 @@ export class ShoutcastSourceAdapter implements IContributionAdapter {
     if (!this.oConfig || !this.bReady) {
       oRes.writeHead(503, { 'Content-Type': 'text/plain' });
       oRes.end('Adapter not ready');
+      return;
+    }
+
+    // A station may only have one active source stream at a time. Reject
+    // overlapping SOURCE requests to prevent two encoders writing into one
+    // session timeline concurrently.
+    if (this.oActiveRequest) {
+      oRes.writeHead(409, { 'Content-Type': 'text/plain' });
+      oRes.end('Source already connected');
       return;
     }
 
@@ -277,7 +292,10 @@ export class ShoutcastSourceAdapter implements IContributionAdapter {
     });
     oRes.flushHeaders();
 
+    // Track this request as the active source stream. Reset the end guard for
+    // this specific connection leg.
     this.oActiveRequest = oReq;
+    this.bSessionEndedForCurrentConnection = false;
 
     // --- Step 5: Stream audio as normalized frames ---
     // Each 'data' event is a Buffer of bytes from the encoder's audio stream.
@@ -330,32 +348,43 @@ export class ShoutcastSourceAdapter implements IContributionAdapter {
 
     oReq.on('end', () => {
       // The encoder closed the connection cleanly (e.g. BUTT stopped).
+      if (this.oActiveRequest !== oReq) return;
       this.oActiveRequest = null;
-      if (!this.sSessionId || !this.oConfig) return;
-
-      this.fnSessionEventHandler?.({
-        eType: 'session.ended',
-        sSessionId: this.sSessionId,
-        sStationId: this.oConfig.sStationId,
-        sEndedAt: new Date().toISOString(),
-        eReason: 'clean_disconnect',
-      });
+      this.fnEmitSessionEnded('clean_disconnect');
     });
 
     oReq.on('error', (oErr: Error) => {
       // Network error or abrupt disconnect.
+      if (this.oActiveRequest !== oReq) return;
       this.oActiveRequest = null;
-      if (!this.sSessionId || !this.oConfig) return;
-
-      this.fnSessionEventHandler?.({
-        eType: 'session.ended',
-        sSessionId: this.sSessionId,
-        sStationId: this.oConfig.sStationId,
-        sEndedAt: new Date().toISOString(),
-        eReason: 'error',
-      });
+      this.fnEmitSessionEnded('error');
 
       this.fnErrorHandler?.(oErr);
     });
+  }
+
+  // --- Private helpers ---
+
+  private fnEmitSessionEnded(eReason: 'clean_disconnect' | 'error'): void {
+    if (this.bSessionEndedForCurrentConnection) return;
+    if (!this.sSessionId || !this.oConfig) return;
+
+    this.bSessionEndedForCurrentConnection = true;
+    this.fnSessionEventHandler?.({
+      eType: 'session.ended',
+      sSessionId: this.sSessionId,
+      sStationId: this.oConfig.sStationId,
+      sEndedAt: new Date().toISOString(),
+      eReason,
+    });
+  }
+
+  private fnResetSessionLifecycleState(): void {
+    this.sSessionId = null;
+    this.sStartedAt = null;
+    this.nOffsetMs = 0;
+    this.nSequenceNo = 0;
+    this.nReconnectCount = 0;
+    this.bSessionEndedForCurrentConnection = false;
   }
 }

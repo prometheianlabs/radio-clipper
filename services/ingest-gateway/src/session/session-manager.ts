@@ -23,7 +23,10 @@
 //   not kill the audio pipeline. The error is logged and the session continues.
 //   If the error handler is not set, errors are written to stderr as a fallback.
 
-import type { TSessionLifecycleEvent } from '@radio-clipper/contracts';
+import type {
+  TSessionHeartbeatEvent,
+  TSessionLifecycleEvent,
+} from '@radio-clipper/contracts';
 import type { ISessionStore, TSessionCreateRecord } from './session-store.js';
 
 export type TSessionManagerOptions = {
@@ -48,6 +51,10 @@ export class SessionManager {
 
   // Optional error handler — set by the caller to route errors to their logger.
   private fnErrorHandler: ((oError: Error) => void) | null = null;
+  // Optional heartbeat event handler so other components (for example health
+  // tracking) can observe successful heartbeat writes without polling DynamoDB.
+  private fnHeartbeatEventHandler:
+    ((oEvent: TSessionHeartbeatEvent) => void) | null = null;
 
   constructor(oStore: ISessionStore, oOptions: TSessionManagerOptions) {
     this.oStore = oStore;
@@ -60,6 +67,14 @@ export class SessionManager {
    */
   fnOnError(fnHandler: (oError: Error) => void): void {
     this.fnErrorHandler = fnHandler;
+  }
+
+  /**
+   * Register a handler that receives session.heartbeat events after the
+   * heartbeat write succeeds.
+   */
+  fnOnHeartbeatEvent(fnHandler: (oEvent: TSessionHeartbeatEvent) => void): void {
+    this.fnHeartbeatEventHandler = fnHandler;
   }
 
   /**
@@ -190,8 +205,18 @@ export class SessionManager {
     sStationId: string,
     sOccurredAt: string,
   ): Promise<void> {
+    const oHeartbeatEvent: TSessionHeartbeatEvent = {
+      eType: 'session.heartbeat',
+      sSessionId,
+      sStationId,
+      sOccurredAt,
+    };
+
     try {
       await this.oStore.fnHeartbeat(sStationId, sSessionId, sOccurredAt);
+      // Emit only after the store update succeeds so downstream health state
+      // reflects persisted heartbeat progress.
+      this.fnHeartbeatEventHandler?.(oHeartbeatEvent);
     } catch (oErr) {
       this.fnEmitError(fnWrapError('Session heartbeat failed', oErr));
     }

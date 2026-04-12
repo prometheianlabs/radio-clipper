@@ -162,6 +162,10 @@ export class DynamoSessionStore implements ISessionStore {
   // ADD on reconnect_count makes this safe under concurrent writes — DynamoDB
   // applies the add atomically, so two rapid reconnect events cannot both write
   // the same count value.
+  //
+  // Important invariant:
+  // Reconnect revives the same logical session record, so ended_at must be
+  // cleared back to null whenever status transitions back to live.
   async fnReconnect(
     sStationId: string,
     sSessionId: string,
@@ -175,13 +179,14 @@ export class DynamoSessionStore implements ISessionStore {
         // ADD increments atomically. SET updates heartbeat and status.
         // 'status' is a DynamoDB reserved word — use expression attribute name #st.
         UpdateExpression:
-          'ADD reconnect_count :one SET last_heartbeat_at = :ts, #st = :live, gsi2_pk = :live',
+          'ADD reconnect_count :one SET last_heartbeat_at = :ts, #st = :live, gsi2_pk = :live, ended_at = :null',
         ConditionExpression: 'attribute_exists(session_id)',
         ExpressionAttributeNames: { '#st': 'status' },
         ExpressionAttributeValues: {
           ':one': 1,
           ':ts': sOccurredAt,
           ':live': 'live',
+          ':null': null,
         },
       }),
     );

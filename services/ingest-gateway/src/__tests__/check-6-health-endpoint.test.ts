@@ -113,6 +113,19 @@ describe('IngestHealthTracker — state transitions', () => {
     expect(oState?.sSessionId).toBe(SESSION_ID);
   });
 
+  it('restores sSessionId when reconnect follows a prior ended event', () => {
+    oTracker.fnHandleSessionEvent(fnCreatedEvent());
+    oTracker.fnHandleSessionEvent(fnEndedEvent());
+
+    // Reconnect should bring the station back online on the same session ID.
+    oTracker.fnHandleSessionEvent(fnReconnectedEvent(1));
+
+    const oState = oTracker.fnGetHealth(STATION_ID);
+    expect(oState?.eStatus).toBe('online');
+    expect(oState?.sSessionId).toBe(SESSION_ID);
+    expect(oState?.nReconnectCount).toBe(1);
+  });
+
   it('transitions to offline when session.ended fires', () => {
     oTracker.fnHandleSessionEvent(fnCreatedEvent());
     oTracker.fnHandleSessionEvent(fnEndedEvent());

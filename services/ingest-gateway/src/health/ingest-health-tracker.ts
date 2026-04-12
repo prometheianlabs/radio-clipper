@@ -97,7 +97,10 @@ export class IngestHealthTracker {
       case 'session.reconnected': {
         const oState = this.oStates.get(oEvent.sStationId);
         if (oState) {
+          // A reconnect keeps the same logical session. Ensure the active
+          // session ID is restored even if a prior session.ended set it null.
           oState.eStatus = 'online';
+          oState.sSessionId = oEvent.sSessionId;
           oState.nReconnectCount = oEvent.nReconnectCount;
           oState.sLastHeartbeatAt = oEvent.sOccurredAt;
         } else {

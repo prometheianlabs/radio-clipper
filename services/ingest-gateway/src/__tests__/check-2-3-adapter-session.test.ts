@@ -171,6 +171,21 @@ describe('check 2 — session creation', () => {
     expect(oRes.nStatus).toBe(401);
   });
 
+  it('rejects a second SOURCE request while one connection is active', async () => {
+    const oReq1 = fnMakeRequest(CORRECT_PASSWORD);
+    const oRes1 = fnMakeResponse();
+    await oAdapter.fnHandleSourceRequest(oReq1, oRes1);
+    expect(oRes1.nStatus).toBe(200);
+
+    // While request 1 is still open, a second source stream must be refused.
+    const oReq2 = fnMakeRequest(CORRECT_PASSWORD);
+    const oRes2 = fnMakeResponse();
+    await oAdapter.fnHandleSourceRequest(oReq2, oRes2);
+    expect(oRes2.nStatus).toBe(409);
+
+    await fnStreamAudioAndEnd(oReq1);
+  });
+
   it('emits session.ended when the encoder disconnects cleanly', async () => {
     const aEvents: TSessionLifecycleEvent[] = [];
     oAdapter.fnOnSessionEvent((e) => aEvents.push(e));
@@ -186,6 +201,25 @@ describe('check 2 — session creation', () => {
     if (oEnded?.eType === 'session.ended') {
       expect(oEnded.eReason).toBe('clean_disconnect');
     }
+  });
+
+  it('emits session.ended only once when fnDisconnect closes an active source', async () => {
+    const aEvents: TSessionLifecycleEvent[] = [];
+    oAdapter.fnOnSessionEvent((e) => aEvents.push(e));
+
+    const oReq = fnMakeRequest(CORRECT_PASSWORD);
+    await oAdapter.fnHandleSourceRequest(oReq, fnMakeResponse());
+
+    await oAdapter.fnDisconnect();
+    // Allow any late request event handlers to run.
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    // Repeated terminal disconnect calls must stay idempotent.
+    await oAdapter.fnDisconnect();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    const aEnded = aEvents.filter((e) => e.eType === 'session.ended');
+    expect(aEnded).toHaveLength(1);
   });
 });
 
@@ -262,5 +296,31 @@ describe('check 3 — reconnect', () => {
     // Only one session.ended so far (from the first disconnect)
     const nEndedCount = aEvents.filter((e) => e.eType === 'session.ended').length;
     expect(nEndedCount).toBe(1);
+  });
+
+  it('starts a new session after manual terminal disconnect + reconnect cycle', async () => {
+    // First connection creates session A.
+    const oReq1 = fnMakeRequest(CORRECT_PASSWORD);
+    await oAdapter.fnHandleSourceRequest(oReq1, fnMakeResponse());
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await oAdapter.fnDisconnect();
+
+    // Adapter lifecycle is terminally disconnected; reconnecting requires fnConnect.
+    await oAdapter.fnConnect(oStationConfig);
+
+    // Next source connection should create session B (new ID), not reconnect A.
+    const oReq2 = fnMakeRequest(CORRECT_PASSWORD);
+    await oAdapter.fnHandleSourceRequest(oReq2, fnMakeResponse());
+    await fnStreamAudioAndEnd(oReq2);
+
+    const aCreated = aEvents.filter(
+      (e): e is Extract<TSessionLifecycleEvent, { eType: 'session.created' }> =>
+        e.eType === 'session.created',
+    );
+    expect(aCreated).toHaveLength(2);
+    expect(aCreated[1].sSessionId).not.toBe(aCreated[0].sSessionId);
+
+    const aReconnect = aEvents.filter((e) => e.eType === 'session.reconnected');
+    expect(aReconnect).toHaveLength(0);
   });
 });

@@ -154,6 +154,12 @@ async function fnMain(): Promise<void> {
     console.error('[session-manager]', oErr.message);
   });
 
+  // SessionManager owns the timer-based heartbeat writes. Forward successful
+  // heartbeat events into the in-memory tracker so /health mirrors live state.
+  oSessionManager.fnOnHeartbeatEvent((oHeartbeatEvent) => {
+    oHealthTracker.fnHandleSessionEvent(oHeartbeatEvent);
+  });
+
   // Tell the adapter this station's config so it is ready to accept connections.
   await oAdapter.fnConnect(oStationConfig);
   console.log(`[main] Adapter ready for ${oStationConfig.sStationId}`);
