@@ -38,6 +38,8 @@ export type TGatewayEnv = {
   nChunkDurationMs: number;
   /** AWS region string, e.g. "us-east-1". */
   sAwsRegion: string;
+  /** Use in-memory stores instead of AWS-backed stores for local validation. */
+  bUseInMemoryStores: boolean;
 };
 
 /**
@@ -62,6 +64,11 @@ export function fnLoadGatewayEnv(
   const sChunksTable = fnRequireEnvString('INGEST_CHUNKS_TABLE', oEnv, asErrors);
   const sStationsTable = fnRequireEnvString('INGEST_STATIONS_TABLE', oEnv, asErrors);
   const sAwsRegion = fnRequireEnvString('AWS_REGION', oEnv, asErrors);
+  const bUseInMemoryStores = fnReadOptionalEnvBoolean(
+    'INGEST_USE_IN_MEMORY_STORES',
+    oEnv,
+    asErrors,
+  );
 
   // --- Numeric fields ---
 
@@ -85,6 +92,7 @@ export function fnLoadGatewayEnv(
     sStationsTable: sStationsTable!,
     nChunkDurationMs: nChunkDurationMs!,
     sAwsRegion: sAwsRegion!,
+    bUseInMemoryStores,
   };
 }
 
@@ -139,4 +147,33 @@ function fnRequireEnvPositiveInt(
     return undefined;
   }
   return nValue;
+}
+
+function fnReadOptionalEnvBoolean(
+  sVar: string,
+  oEnv: Record<string, string | undefined>,
+  asErrors: string[],
+): boolean {
+  const sValue = oEnv[sVar];
+  if (sValue === undefined || sValue.trim() === '') {
+    return false;
+  }
+
+  switch (sValue.trim().toLowerCase()) {
+    case '1':
+    case 'true':
+    case 'yes':
+    case 'on':
+      return true;
+
+    case '0':
+    case 'false':
+    case 'no':
+    case 'off':
+      return false;
+
+    default:
+      asErrors.push(`${sVar} must be a boolean-like value (got "${sValue}")`);
+      return false;
+  }
 }

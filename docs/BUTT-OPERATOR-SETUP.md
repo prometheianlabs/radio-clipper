@@ -85,7 +85,8 @@ that spans a reconnect boundary as long as both sides have corresponding chunks.
 ## Connecting in local development (no AWS)
 
 For local development without real AWS credentials, the gateway has two stubs
-that replace the real AWS lookups. Set these environment variables before
+that replace the real AWS lookups, plus an explicit in-memory local mode for
+session and chunk persistence. Set these environment variables before
 starting the gateway:
 
 ```bash
@@ -98,6 +99,7 @@ export INGEST_CHUNKS_TABLE=local-stub
 export INGEST_STATIONS_TABLE=local-stub
 export INGEST_CHUNK_DURATION_MS=6000
 export AWS_REGION=us-east-1
+export INGEST_USE_IN_MEMORY_STORES=1
 
 # Station config stub — replace field values with your test station
 export STATION_CONFIG_JSON='{"sStationId":"station_001","sName":"Test Station","sSlug":"test","eStatus":"active","ePrimaryIngestProtocol":"shoutcast","aFutureProtocolsEnabled":[],"eEncoderType":"butt","sIngestEndpoint":"localhost:8000","sCredentialSecretArn":"arn:aws:secretsmanager:us-east-1:000000000000:secret:stub","nRetentionDays":7,"sCreatedAt":"2026-01-01T00:00:00Z","sUpdatedAt":"2026-01-01T00:00:00Z"}'
@@ -112,6 +114,17 @@ Then start the gateway:
 cd services/ingest-gateway
 node --experimental-strip-types src/main.ts
 ```
+
+Or run the automated local proof path:
+
+```bash
+cd services/ingest-gateway
+npm run validate:local
+```
+
+That script starts the real gateway in in-memory local mode, pushes a simulated
+source stream through `/stream`, verifies chunk creation and reconnect behavior,
+and prints JSON evidence you can paste into validation notes.
 
 Configure BUTT with:
 - Address: `localhost`

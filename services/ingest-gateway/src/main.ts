@@ -34,12 +34,20 @@ import { fnLoadGatewayEnv, fnValidateStationConfig } from '@radio-clipper/config
 
 import { ShoutcastSourceAdapter } from './adapter/shoutcast-source-adapter.js';
 import { SessionManager } from './session/session-manager.js';
-import { DynamoSessionStore } from './session/session-store.js';
+import {
+  DynamoSessionStore,
+  type ISessionStore,
+} from './session/session-store.js';
 import { ChunkAssembler } from './chunk/chunk-assembler.js';
-import { DynamoChunkStore } from './chunk/chunk-store.js';
-import { S3AudioStore } from './chunk/audio-store.js';
+import { DynamoChunkStore, type IChunkStore } from './chunk/chunk-store.js';
+import { S3AudioStore, type IS3AudioStore } from './chunk/audio-store.js';
 import { IngestHealthTracker } from './health/ingest-health-tracker.js';
 import { fnRouteHealthRequest } from './health/health-router.js';
+import {
+  InMemoryAudioStore,
+  InMemoryChunkStore,
+  InMemorySessionStore,
+} from './local/in-memory-stores.js';
 
 // ---------------------------------------------------------------------------
 // STUB: station config loader
@@ -85,11 +93,27 @@ async function fnMain(): Promise<void> {
   const oStationConfig = oConfigResult.oValue;
   console.log(`[main] Station config loaded: ${oStationConfig.sStationId}`);
 
-  // --- Step 3: AWS clients ---
-  const oDynamo = DynamoDBDocumentClient.from(
-    new DynamoDBClient({ region: oEnv.sAwsRegion }),
-  );
-  const oS3 = new S3Client({ region: oEnv.sAwsRegion });
+  // --- Step 3: Storage dependencies ---
+  // Local validation mode swaps the AWS-backed stores for in-memory ones so
+  // the gateway can run end to end without provisioned infrastructure.
+  let oSessionStore: ISessionStore;
+  let oChunkStore: IChunkStore;
+  let oAudioStore: IS3AudioStore;
+
+  if (oEnv.bUseInMemoryStores) {
+    oSessionStore = new InMemorySessionStore();
+    oChunkStore = new InMemoryChunkStore();
+    oAudioStore = new InMemoryAudioStore();
+  } else {
+    const oDynamo = DynamoDBDocumentClient.from(
+      new DynamoDBClient({ region: oEnv.sAwsRegion }),
+    );
+    const oS3 = new S3Client({ region: oEnv.sAwsRegion });
+
+    oSessionStore = new DynamoSessionStore(oDynamo, oEnv.sSessionsTable);
+    oChunkStore = new DynamoChunkStore(oDynamo, oEnv.sChunksTable);
+    oAudioStore = new S3AudioStore(oS3);
+  }
 
   // --- Step 4: Build components ---
 
@@ -101,13 +125,10 @@ async function fnMain(): Promise<void> {
     oEnv.sNodeId,
   );
 
-  const oSessionStore = new DynamoSessionStore(oDynamo, oEnv.sSessionsTable);
   const oSessionManager = new SessionManager(oSessionStore, {
     nHeartbeatIntervalMs: 20_000,
   });
 
-  const oChunkStore = new DynamoChunkStore(oDynamo, oEnv.sChunksTable);
-  const oAudioStore = new S3AudioStore(oS3);
   const oAssembler = new ChunkAssembler(oAudioStore, oChunkStore, {
     nChunkDurationMs: oEnv.nChunkDurationMs,
     sChunkBucket: oEnv.sChunkBucket,
@@ -163,6 +184,9 @@ async function fnMain(): Promise<void> {
   // Tell the adapter this station's config so it is ready to accept connections.
   await oAdapter.fnConnect(oStationConfig);
   console.log(`[main] Adapter ready for ${oStationConfig.sStationId}`);
+  if (oEnv.bUseInMemoryStores) {
+    console.log('[main] Local validation mode enabled: using in-memory stores');
+  }
 
   // --- Step 6: HTTP server ---
 

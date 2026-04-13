@@ -7,17 +7,19 @@
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "start": "node --experimental-strip-types src/main.ts"
+    "start": "tsx src/main.ts",
+    "validate:local": "node scripts/validate-local-e2e.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.0.0",
     "@aws-sdk/client-s3": "^3.0.0",
     "@aws-sdk/lib-dynamodb": "^3.0.0",
-    "@radio-clipper/contracts": "file:../../packages/contracts",
-    "@radio-clipper/config": "file:../../packages/config"
+    "@radio-clipper/config": "file:../../packages/config",
+    "@radio-clipper/contracts": "file:../../packages/contracts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.2",
     "vitest": "^4.0.0"
   }

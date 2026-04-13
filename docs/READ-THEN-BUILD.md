@@ -4,29 +4,29 @@ Use this order before writing implementation code.
 
 ## Current slice
 
-**Slice 02 — Shoutcast Ingest** (plan approved, ready for implementation)
+**Slice 03 — Live Transcription** (planning next; Slice 02 implementation complete)
 
 ## Read order
 
 1. [START-HERE.md](../START-HERE.md)
 2. [ROADMAP.md](../ROADMAP.md)
-3. [slices/SLICE-02-shoutcast-ingest.md](../slices/SLICE-02-shoutcast-ingest.md) ← current slice
+3. [slices/SLICE-03-live-transcription.md](../slices/SLICE-03-live-transcription.md) ← current slice
 4. [ARCHITECTURE.md](../ARCHITECTURE.md)
 5. [ARCHON-WORKFLOW.md](../ARCHON-WORKFLOW.md)
 6. [DATA-MODEL.md](../DATA-MODEL.md)
 7. [API-AND-EVENTS.md](../API-AND-EVENTS.md)
-8. [docs/SLICE-02-IMPLEMENTATION-PLAN.md](SLICE-02-IMPLEMENTATION-PLAN.md)
-9. [docs/CODING-STYLE.md](CODING-STYLE.md)
+8. [docs/SLICE-02-CHECKLIST.md](SLICE-02-CHECKLIST.md)
+9. [docs/SLICE-03-IMPLEMENTATION-PLAN.md](SLICE-03-IMPLEMENTATION-PLAN.md)
+10. [docs/CODING-STYLE.md](CODING-STYLE.md)
 
-## Build order (Slice 02)
+## Build order (Slice 03 planning)
 
-1. Shared ingest contracts in `packages/contracts`.
-2. Station ingest configuration model.
-3. `ShoutcastSourceAdapter` in `services/ingest-gateway`.
-4. Live session lifecycle against DynamoDB.
-5. Chunk segmentation and S3 archive path.
-6. Ingest health surface.
-7. Operator setup note for BUTT in `docs/`.
+1. Read the Slice 02 completion record and keep its boundaries intact.
+2. Read `slices/SLICE-03-live-transcription.md`.
+3. Define the normalized handoff from ingest into transcription.
+4. Plan partial and final transcript persistence.
+5. Plan the live transcript event stream to the UI.
+6. Define validation targets for timing fidelity and transcript delay.
 
 ## Guardrails
 
@@ -34,5 +34,5 @@ Use this order before writing implementation code.
 - Do not couple downstream services (transcription, export, UI) to Shoutcast-specific fields.
 - Chunk timing must derive from absolute UTC plus session offset — not arrival clock.
 - Write DynamoDB chunk metadata only after the S3 object write succeeds.
-- Do not start Slice 03 transcription work in this slice.
+- Do not reopen Slice 02 implementation unless validation evidence falsifies it.
 - Use readable Hungarian notation in all new code.
