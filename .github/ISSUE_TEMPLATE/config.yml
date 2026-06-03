@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Planning and architecture context
+    url: https://github.com/prometheianlabs/radio-clipper/blob/main/README.md
+    about: Review the repository README and planning docs before opening a new issue.
