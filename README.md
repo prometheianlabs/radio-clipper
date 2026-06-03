@@ -39,3 +39,9 @@ Radio Clipper is currently scoped around a Shoutcast-first ingest path, with Ice
 ## Notes
 
 This is a planning-first repository rather than a finished production application. The current documents are intended to support implementation, validation, and future build-out.
+
+## Release and versioning
+
+- There is no production deployment workflow yet; changes to `main` currently update the planning baseline, not a live product.
+- Treat merged planning changes as documentation releases that should keep the roadmap, architecture, and implementation slices aligned.
+- The current release policy for this planning phase lives in [RELEASING.md](RELEASING.md).
